@@ -1,0 +1,5 @@
+*
+!.gitignore
+!.zshrc
+!.gitconfig
+!.config/discord/settings.json
