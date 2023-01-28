@@ -24,7 +24,6 @@ if [ -d /usr/share/zsh/plugins/ ]; then
 	done
 fi
 
-alias pacman="pacman --color auto"
 alias ls="ls --color --human-readable --classify --sort=extension"
 alias lsh="ls --almost-all"
 
@@ -35,7 +34,7 @@ export PATH=$PNPM_HOME:$PATH
 
 run() {
 	if which $1 &> /dev/null; then
-        command $@ &> /dev/null &!
+		command $@ &> /dev/null &!
 	else
 		$1
 	fi
@@ -49,7 +48,7 @@ RPROMPT="%F{blue}%~ %(?.%F{green}.%B%F{red})%?%f%b %F{yellow}%D{%H:%M:%S}%f"
 TMOUT=1
 
 TRAPALRM() {
-    zle reset-prompt
+	zle reset-prompt
 }
 
 cd() {
@@ -60,11 +59,11 @@ alias ll="ls -l"
 alias llh="lsh -l"
 
 if which batcat; then
-    alias bat=batcat
+	alias bat=batcat
 fi
 
 if which bat; then
-    alias cat=bat
+	alias cat=bat
 fi
 
 # create a zkbd compatible hash;
@@ -110,55 +109,57 @@ fi
 
 alias \$="bash -c"
 alias \#=sudo
-alias search-package="pacman -Ss"
-alias sp=search-package
-alias add-package="# pacman -S --needed"
-alias ap=add-package
 alias arch="distrobox enter arch"
 alias debian="distrobox enter debian"
 alias dolphin="run dolphin"
-alias upgrade-package="# pacman -Syu"
-alias up=upgrade-package
-alias remove-package="# pacman -Rs"
-alias rp=remove-package
 
 rm() {
 	echo "Did you mean \`trash\`? If you really mean \`rm\`, use \`\\\rm\`."
 }
 
 if which pacman &> /dev/null; then
-    function command_not_found_handler {
-        local purple='\e[1;35m' bright='\e[0;1m' green='\e[1;32m' reset='\e[0m'
-        printf 'zsh: command not found: %s\n' "$1"
-        local entries=(
-            ${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"}
-        )
-        if (( ${#entries[@]} ))
-        then
-            printf "${bright}$1${reset} may be found in the following packages:\n"
-            local pkg
-            for entry in "${entries[@]}"
-            do
-                # (repo package version file)
-                local fields=(
-                    ${(0)entry}
-                )
-                if [[ "$pkg" != "${fields[2]}" ]]
-                then
-                    printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
-                fi
-                printf '    /%s\n' "${fields[4]}"
-                pkg="${fields[2]}"
-            done
-        fi
-        return 127
-    }
+	alias pacman="pacman --color auto"
+	alias search-package="pacman -Ss"
+	alias sp=search-package
+	alias add-package="# pacman -S --needed"
+	alias ap=add-package
+	alias upgrade-package="# pacman -Syu"
+	alias up=upgrade-package
+	alias remove-package="# pacman -Rs"
+	alias rp=remove-package
+
+	function command_not_found_handler {
+		local purple='\e[1;35m' bright='\e[0;1m' green='\e[1;32m' reset='\e[0m'
+		printf 'zsh: command not found: %s\n' "$1"
+		local entries=(
+			${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"}
+		)
+		if (( ${#entries[@]} ))
+		then
+			printf "${bright}$1${reset} may be found in the following packages:\n"
+			local pkg
+			for entry in "${entries[@]}"
+			do
+				# (repo package version file)
+				local fields=(
+					${(0)entry}
+				)
+				if [[ "$pkg" != "${fields[2]}" ]]
+				then
+					printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
+				fi
+				printf '    /%s\n' "${fields[4]}"
+				pkg="${fields[2]}"
+			done
+		fi
+		return 127
+	}
 fi
 
 precmd() {
-    precmd() {
-        echo
-    }
+	precmd() {
+		echo
+	}
 }
 
 VISUAL=nvim
