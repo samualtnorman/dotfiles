@@ -58,7 +58,14 @@ cd() {
 
 alias ll="ls -l"
 alias llh="lsh -l"
-alias cat=bat
+
+if which batcat; then
+    alias bat=batcat
+fi
+
+if which bat; then
+    alias cat=bat
+fi
 
 # create a zkbd compatible hash;
 # to add other keys to this hash, see: man 5 terminfo
