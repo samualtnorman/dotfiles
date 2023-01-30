@@ -24,7 +24,7 @@ if [ -d /usr/share/zsh/plugins/ ]; then
 	done
 fi
 
-for PLUGIN in /usr/share/zsh-*; do
+for PLUGIN in /usr/share/zsh-*(N); do
 	source $PLUGIN/`basename $PLUGIN`.zsh
 done
 
