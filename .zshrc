@@ -24,6 +24,10 @@ if [ -d /usr/share/zsh/plugins/ ]; then
 	done
 fi
 
+for PLUGIN in /usr/share/zsh-*; do
+	source $PLUGIN/`basename $PLUGIN`.zsh
+done
+
 alias ls="ls --color --human-readable --classify --sort=extension"
 alias lsh="ls --almost-all"
 
