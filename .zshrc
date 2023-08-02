@@ -1,74 +1,120 @@
-# Lines configured by zsh-newuser-install
-HISTFILE=~/.histfile
+VSCODE_SUGGEST=1
+HISTFILE=~/.zsh-history
 HISTSIZE=10000
 SAVEHIST=10000
+PROMPT="%F{cyan}%m%f%# "
+RPROMPT="%F{blue}%~ %(?.%F{green}.%B%F{red})%?%f%b %F{yellow}%D{%H:%M}%f"
+
+command-exists () {
+        which $1 &> /dev/null
+}
+
+run () {
+        if command-exists $1
+        then
+                command $@ &> /dev/null &|
+        else
+                $1
+        fi
+}
+
+cd () {
+	builtin cd $@ && ls
+}
+
+rm () {
+	echo "Did you mean \`trash\`? If you really mean \`rm\`, use \`command rm\`."
+	return 1
+}
+
+file-info () {
+	for FILE in $@
+	do
+		file $FILE
+		file --mime-type $FILE
+		file --extension $FILE
+		echo
+	done
+}
+
+alias-for () {
+	local search=${1}
+	local found="$( alias $search )"
+
+	if [[ -n $found ]]
+	then
+		found=${found//\\//}
+		found=${found%\'}
+		found=${found#"$search="}
+		found=${found#"'"}
+		echo "${found} ${2}" | xargs
+	else
+		echo ""
+	fi
+}
+
+extend-alias () {
+        if alias $1 &> /dev/null
+        then
+                alias $1="`alias-for $1`; $2"
+        else
+                alias $1=$2
+        fi
+}
+
+old () {
+        test -f $1.old && old $1.old
+        mv $1 $1.old
+}
+
+command-exists batcat && alias bat=batcat
+command-exists bat && alias cat=bat
+command-exists doas && alias sudo=doas
+command-exists docker && alias arch="docker run -it --rm --name arch archlinux:latest"
+command-exists docker && alias debian="docker run -it --rm --name arch debian:latest"
+
 setopt autocd beep extendedglob nomatch notify
 bindkey -e
-# End of lines configured by zsh-newuser-install
-# The following lines were added by compinstall
 zstyle :compinstall filename ~/.zshrc
-
 autoload -Uz compinit
+
 compinit
-# End of lines added by compinstall
 
-if [ -d /run/host/usr/share/zsh/plugins/ ]; then
-	for PLUGIN in /run/host/usr/share/zsh/plugins/*; do
-		source $PLUGIN/`basename $PLUGIN`.zsh
-	done
-fi
+[ -d /run/host/usr/share/zsh/plugins/ ] && for PLUGIN in /run/host/usr/share/zsh/plugins/*
+do
+	source $PLUGIN/`basename $PLUGIN`.zsh
+done
 
-if [ -d /usr/share/zsh/plugins/ ]; then
-	for PLUGIN in /usr/share/zsh/plugins/*; do
-		source $PLUGIN/`basename $PLUGIN`.zsh
-	done
-fi
+[ -d /usr/share/zsh/plugins/ ] && for PLUGIN in /usr/share/zsh/plugins/*
+do
+	source $PLUGIN/`basename $PLUGIN`.zsh
+done
 
-for PLUGIN in /usr/share/zsh-*(N); do
+for PLUGIN in /usr/share/zsh-*(#qN)
+do
 	source $PLUGIN/`basename $PLUGIN`.zsh
 done
 
 alias ls="ls --color --human-readable --classify --sort=extension"
 alias lsh="ls --almost-all"
-
-# pnpm
-export PNPM_HOME=~/.local/share/pnpm
-export PATH=$PNPM_HOME:$PATH
-# pnpm end
-
-run() {
-	if which $1 &> /dev/null; then
-		command $@ &> /dev/null &!
-	else
-		$1
-	fi
-}
-
 alias kwrite="run kwrite"
-
-PROMPT="%F{cyan}%m%f%# "
-RPROMPT="%F{blue}%~ %(?.%F{green}.%B%F{red})%?%f%b %F{yellow}%D{%H:%M:%S}%f"
-
-TMOUT=1
-
-TRAPALRM() {
-	zle reset-prompt
-}
-
-cd() {
-	builtin cd $@ && ls
-}
-
 alias ll="ls -l"
 alias llh="lsh -l"
+alias \$="bash -c"
+alias \#=sudo
+alias dolphin="run dolphin"
+alias df="df -h"
+alias du="du -shc"
+alias grep="grep --color"
 
-if which batcat; then
-	alias bat=batcat
-fi
+export PNPM_HOME=~/.local/share/pnpm
 
-if which bat; then
-	alias cat=bat
-fi
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
+export PATH=/home/samual/.cargo/bin:$PATH
 
 # create a zkbd compatible hash;
 # to add other keys to this hash, see: man 5 terminfo
@@ -103,75 +149,104 @@ key[Shift-Tab]="${terminfo[kcbt]}"
 
 # Finally, make sure the terminal is in application mode, when zle is
 # active. Only then are the values from $terminfo valid.
-if (( ${+terminfo[smkx]} && ${+terminfo[rmkx]} )); then
+(( ${+terminfo[smkx]} && ${+terminfo[rmkx]} )) && {
 	autoload -Uz add-zle-hook-widget
-	function zle_application_mode_start { echoti smkx }
-	function zle_application_mode_stop { echoti rmkx }
+
+	zle_application_mode_start () {
+		echoti smkx
+	}
+
+	zle_application_mode_stop () {
+		echoti rmkx
+	}
+
 	add-zle-hook-widget -Uz zle-line-init zle_application_mode_start
 	add-zle-hook-widget -Uz zle-line-finish zle_application_mode_stop
-fi
-
-alias \$="bash -c"
-alias \#=sudo
-alias arch="distrobox enter arch"
-alias debian="distrobox enter debian"
-alias dolphin="run dolphin"
-
-rm() {
-	echo "Did you mean \`trash\`? If you really mean \`rm\`, use \`\\\rm\`."
 }
 
-if which pacman &> /dev/null; then
+command-exists pnpm && extend-alias upgrade-package "pnpm update -g"
+command-exists bun && extend-alias upgrade-package "bun upgrade"
+
+if command-exists pacman
+then
 	alias pacman="pacman --color auto"
 	alias search-package="pacman -Ss"
-	alias sp=search-package
 	alias add-package="# pacman -S --needed"
-	alias ap=add-package
-	alias upgrade-package="# pacman -Syu"
-	alias up=upgrade-package
+	extend-alias upgrade-package "# pacman -Syu"
 	alias remove-package="# pacman -Rs"
-	alias rp=remove-package
 
-	function command_not_found_handler {
-		local purple='\e[1;35m' bright='\e[0;1m' green='\e[1;32m' reset='\e[0m'
-		printf 'zsh: command not found: %s\n' "$1"
-		local entries=(
-			${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"}
-		)
-		if (( ${#entries[@]} ))
-		then
-			printf "${bright}$1${reset} may be found in the following packages:\n"
-			local pkg
-			for entry in "${entries[@]}"
-			do
-				# (repo package version file)
-				local fields=(
-					${(0)entry}
-				)
-				if [[ "$pkg" != "${fields[2]}" ]]
-				then
-					printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
-				fi
-				printf '    /%s\n' "${fields[4]}"
-				pkg="${fields[2]}"
-			done
-		fi
-		return 127
+	command_not_found_handler () {
+			local purple='\e[1;35m'
+			local bright='\e[0;1m'
+			local green='\e[1;32m'
+			local reset='\e[0m'
+			printf 'zsh: command not found: %s\n' "$1"
+			local entries=(${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"})
+
+			(( ${#entries[@]} )) && {
+					printf "${bright}$1${reset} may be found in the following packages:\n"
+					local pkg
+
+					for entry in "${entries[@]}"
+					do
+							local fields=(${(0)entry})
+							[[ "$pkg" != "${fields[2]}" ]] && printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
+							printf '    /%s\n' "${fields[4]}"
+							pkg="${fields[2]}"
+					done
+			}
+
+			return 127
 	}
+elif command-exists dnf
+then
+	alias add-package="# dnf install"
+elif command-exists apt
+then
+	alias search-package="apt search"
+	alias add-package="# apt install"
+	alias upgrade-package="# apt update && # apt upgrade"
+	alias remove-package="# apt remove"
 fi
 
-precmd() {
-	precmd() {
-		echo
-	}
+command-exists rua && extend-alias upgrade-package "rua upgrade"
+command-exists cargo && extend-alias upgrade-package "cargo install-update -a"
+command-exists search-package && alias sp=search-package
+command-exists add-package && alias ap=add-package
+command-exists upgrade-package && alias up=upgrade-package
+command-exists remove-package && alias rp=remove-package
+
+see () {
+	ll -d $1
+	file $1
+
+	if [[ -d $1 ]]
+	then
+		ls $1
+	else
+		bat $1
+	fi
 }
 
-VISUAL=nvim
-EDITOR=nvim
+precmd () {
+        echo
+}
 
-# if which neofetch &> /dev/null; then
-# 	neofetch
-# fi
+export PATH=/sbin:/bin:/usr/local/bin:/usr/local/sbin:~/.local/share/pnpm:~/.cargo/bin:~/.local/bin
+command-exists npm && export PATH=$PATH:`npm config get prefix`/bin
+export VISUAL=nvim
+export EDITOR=nvim
+[ -s /home/samual/.bun/_bun ] && source /home/samual/.bun/_bun
+export BUN_INSTALL=~/.bun
+export PATH=$BUN_INSTALL/bin:$PATH
+export PATH=~/zig:$PATH
 
+del-prompt-accept-line () {
+        zle reset-prompt
+        zle accept-line
+}
+
+zle -N del-prompt-accept-line
+bindkey "^M" del-prompt-accept-line
+eval "$(direnv hook zsh)"
 ls
-echo
