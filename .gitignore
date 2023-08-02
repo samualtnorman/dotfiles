@@ -1,6 +1,5 @@
 *
 !.config/alacritty/alacritty.yml
 !.config/tmux/tmux.conf
-!.gitconfig
 !.gitignore
 !.zshrc
