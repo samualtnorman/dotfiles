@@ -248,5 +248,5 @@ del-prompt-accept-line () {
 
 zle -N del-prompt-accept-line
 bindkey "^M" del-prompt-accept-line
-eval "$(direnv hook zsh)"
+command-exists && eval "$(direnv hook zsh)"
 ls
