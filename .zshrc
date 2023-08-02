@@ -1,3 +1,9 @@
+command-exists () {
+        which $1 &> /dev/null
+}
+
+(command-exists tmux && [ -n "$TMUX" ]) || exec zsh -c "tmux attach || tmux"
+
 VSCODE_SUGGEST=1
 HISTFILE=~/.zsh-history
 HISTSIZE=10000
@@ -5,9 +11,6 @@ SAVEHIST=10000
 PROMPT="%F{cyan}%m%f%# "
 RPROMPT="%F{blue}%~ %(?.%F{green}.%B%F{red})%?%f%b %F{yellow}%D{%H:%M}%f"
 
-command-exists () {
-        which $1 &> /dev/null
-}
 
 run () {
         if command-exists $1
