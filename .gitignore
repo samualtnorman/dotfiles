@@ -1,5 +1,6 @@
 *
+!.config/alacritty/alacritty.yml
+!.config/tmux/tmux.conf
+!.gitconfig
 !.gitignore
 !.zshrc
-!.gitconfig
-!.config/discord/settings.json
