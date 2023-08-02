@@ -235,7 +235,7 @@ precmd () {
         echo
 }
 
-export PATH=/sbin:/bin:/usr/local/bin:/usr/local/sbin:~/.local/share/pnpm:~/.cargo/bin:~/.local/bin
+export PATH=~/.local/bin:/sbin:/bin:/usr/local/bin:/usr/local/sbin:~/.local/share/pnpm:~/.cargo/bin
 command-exists npm && export PATH=$PATH:`npm config get prefix`/bin
 export VISUAL=nvim
 export EDITOR=nvim
