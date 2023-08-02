@@ -1,0 +1,8 @@
+window: { opacity: 0.6 }
+cursor: { style: { shape: Beam, blinking: On } }
+
+colors:
+  primary: { background: "#101010" }
+  selection: { text: CellForeground, background: "#484848" }
+  normal: { red: "#E04040", yellow: "#E0E040", green: "#40E040", cyan: "#40E0FF", blue: "#4040FF", magenta: "#E040FF" }
+  bright: { red: "#FF0000", yellow: "#FFFF00", green: "#00FF00", cyan: "#00FFFF", blue: "#0000FF", magenta: "#FF00FF" }
