@@ -2,7 +2,7 @@ command-exists () {
         which $1 &> /dev/null
 }
 
-(command-exists tmux && [ -n "$TMUX" ]) || exec zsh -c "tmux attach || tmux || sh"
+(command-exists tmux && [ -n "$TMUX" ]) || exec sh -c "tmux attach || tmux || sh"
 
 export TERM=xterm-256color
 
