@@ -1,8 +1,10 @@
-command-exists () {
+command-exists() {
     which $1 &> /dev/null
 }
 
 (command-exists tmux && ! [ -n "$TMUX" ]) && exec sh -c "tmux attach || tmux || sh"
+
+[ "$TERM" = "tmux-256color" ] && export TERM=screen-256color
 
 # export TERM=xterm-256color
 
@@ -67,6 +69,13 @@ old () {
     mv $1 $1.old
 }
 
+extend-path() {
+	case :$PATH: in
+		*:$1:*) ;;
+		*) export PATH=$1:$PATH ;;
+	esac
+}
+
 command-exists batcat && alias bat=batcat
 command-exists bat && alias cat=bat
 command-exists doas && alias sudo=doas
@@ -103,6 +112,7 @@ alias dolphin="run dolphin"
 alias df="df -h"
 alias du="du -shc"
 alias grep="grep --color"
+command-exists konsole && alias konsole="run konsole"
 
 [ -n "$IN_NIX_SHELL" ] || {
 	export PNPM_HOME=~/.local/share/pnpm
@@ -212,7 +222,7 @@ command-exists add-package && alias ap=add-package
 command-exists upgrade-package && alias up=upgrade-package
 command-exists remove-package && alias rp=remove-package
 
-see () {
+see() {
 	ll -d $1
 	file $1
 
