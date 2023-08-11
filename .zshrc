@@ -1,5 +1,5 @@
 command-exists () {
-        which $1 &> /dev/null
+    which $1 &> /dev/null
 }
 
 (command-exists tmux && ! [ -n "$TMUX" ]) && exec sh -c "tmux attach || tmux || sh"
@@ -14,12 +14,11 @@ PROMPT="%F{cyan}%m%f%# "
 RPROMPT="%F{blue}%~ %(?.%F{green}.%B%F{red})%?%f%b %F{yellow}%D{%H:%M}%f"
 
 run () {
-        if command-exists $1
-        then
-                command $@ &> /dev/null &|
-        else
-                $1
-        fi
+    if command-exists $1; then
+        command $@ &> /dev/null &|
+    else
+        $1
+    fi
 }
 
 cd () {
@@ -32,8 +31,7 @@ rm () {
 }
 
 file-info () {
-	for FILE in $@
-	do
+	for FILE in $@; do
 		file $FILE
 		file --mime-type $FILE
 		file --extension $FILE
@@ -45,8 +43,7 @@ alias-for () {
 	local search=${1}
 	local found="$( alias $search )"
 
-	if [[ -n $found ]]
-	then
+	if [[ -n $found ]]; then
 		found=${found//\\//}
 		found=${found%\'}
 		found=${found#"$search="}
@@ -58,17 +55,16 @@ alias-for () {
 }
 
 extend-alias () {
-        if alias $1 &> /dev/null
-        then
-                alias $1="`alias-for $1`; $2"
-        else
-                alias $1=$2
-        fi
+    if alias $1 &> /dev/null; then
+        alias $1="`alias-for $1`; $2"
+    else
+        alias $1=$2
+    fi
 }
 
 old () {
-        test -f $1.old && old $1.old
-        mv $1 $1.old
+    test -f $1.old && old $1.old
+    mv $1 $1.old
 }
 
 command-exists batcat && alias bat=batcat
@@ -84,18 +80,15 @@ autoload -Uz compinit
 
 compinit
 
-[ -d /run/host/usr/share/zsh/plugins/ ] && for PLUGIN in /run/host/usr/share/zsh/plugins/*
-do
+[ -d /run/host/usr/share/zsh/plugins/ ] && for PLUGIN in /run/host/usr/share/zsh/plugins/*; do
 	source $PLUGIN/`basename $PLUGIN`.zsh
 done
 
-[ -d /usr/share/zsh/plugins/ ] && for PLUGIN in /usr/share/zsh/plugins/*
-do
+[ -d /usr/share/zsh/plugins/ ] && for PLUGIN in /usr/share/zsh/plugins/*; do
 	source $PLUGIN/`basename $PLUGIN`.zsh
 done
 
-for PLUGIN in /usr/share/zsh-*(#qN)
-do
+for PLUGIN in /usr/share/zsh-*(#qN); do
 	source $PLUGIN/`basename $PLUGIN`.zsh
 done
 
@@ -111,12 +104,14 @@ alias df="df -h"
 alias du="du -shc"
 alias grep="grep --color"
 
-export PNPM_HOME=~/.local/share/pnpm
+[ -n "$IN_NIX_SHELL" ] || {
+	export PNPM_HOME=~/.local/share/pnpm
 
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
+	case ":$PATH:" in
+  	  *":$PNPM_HOME:"*) ;;
+  	  *) export PATH="$PNPM_HOME:$PATH" ;;
+	esac
+}
 
 export PATH=/home/samual/.cargo/bin:$PATH
 
@@ -156,11 +151,11 @@ key[Shift-Tab]="${terminfo[kcbt]}"
 (( ${+terminfo[smkx]} && ${+terminfo[rmkx]} )) && {
 	autoload -Uz add-zle-hook-widget
 
-	zle_application_mode_start () {
+	zle_application_mode_start() {
 		echoti smkx
 	}
 
-	zle_application_mode_stop () {
+	zle_application_mode_stop() {
 		echoti rmkx
 	}
 
@@ -171,8 +166,7 @@ key[Shift-Tab]="${terminfo[kcbt]}"
 command-exists pnpm && extend-alias upgrade-package "pnpm update -g"
 command-exists bun && extend-alias upgrade-package "bun upgrade"
 
-if command-exists pacman
-then
+if command-exists pacman; then
 	alias pacman="pacman --color auto"
 	alias search-package="pacman -Ss"
 	alias add-package="# pacman -S --needed"
@@ -180,33 +174,31 @@ then
 	alias remove-package="# pacman -Rs"
 
 	command_not_found_handler () {
-			local purple='\e[1;35m'
-			local bright='\e[0;1m'
-			local green='\e[1;32m'
-			local reset='\e[0m'
-			printf 'zsh: command not found: %s\n' "$1"
-			local entries=(${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"})
+		local purple='\e[1;35m'
+		local bright='\e[0;1m'
+		local green='\e[1;32m'
+		local reset='\e[0m'
+		printf 'zsh: command not found: %s\n' "$1"
+		local entries=(${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"})
 
-			(( ${#entries[@]} )) && {
-					printf "${bright}$1${reset} may be found in the following packages:\n"
-					local pkg
+		(( ${#entries[@]} )) && {
+			printf "${bright}$1${reset} may be found in the following packages:\n"
+			local pkg
 
-					for entry in "${entries[@]}"
-					do
-							local fields=(${(0)entry})
-							[[ "$pkg" != "${fields[2]}" ]] && printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
-							printf '    /%s\n' "${fields[4]}"
-							pkg="${fields[2]}"
-					done
-			}
+			for entry in "${entries[@]}"
+			do
+				local fields=(${(0)entry})
+				[[ "$pkg" != "${fields[2]}" ]] && printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
+				printf '    /%s\n' "${fields[4]}"
+				pkg="${fields[2]}"
+			done
+		}
 
-			return 127
+		return 127
 	}
-elif command-exists dnf
-then
+elif command-exists dnf; then
 	alias add-package="# dnf install"
-elif command-exists apt
-then
+elif command-exists apt; then
 	alias search-package="apt search"
 	alias add-package="# apt install"
 	alias upgrade-package="# apt update && # apt upgrade"
@@ -224,8 +216,7 @@ see () {
 	ll -d $1
 	file $1
 
-	if [[ -d $1 ]]
-	then
+	if [[ -d $1 ]]; then
 		ls $1
 	else
 		bat $1
@@ -233,7 +224,7 @@ see () {
 }
 
 precmd () {
-        echo
+	echo
 }
 
 # export PATH=~/.local/bin:/sbin:/bin:/usr/local/bin:/usr/local/sbin:~/.local/share/pnpm:$PATH
@@ -246,11 +237,16 @@ export EDITOR=nvim
 # export PATH=~/zig:$PATH
 
 del-prompt-accept-line () {
-        zle reset-prompt
-        zle accept-line
+    zle reset-prompt
+    zle accept-line
 }
 
 zle -N del-prompt-accept-line
 bindkey "^M" del-prompt-accept-line
 command-exists && eval "$(direnv hook zsh)"
+
+path() {
+	echo $PATH | tr : '\n'
+}
+
 ls
