@@ -2,7 +2,7 @@ command-exists () {
         which $1 &> /dev/null
 }
 
-(command-exists tmux && [ -n "$TMUX" ]) || exec sh -c "tmux attach || tmux || sh"
+(command-exists tmux && ! [ -n "$TMUX" ]) && exec sh -c "tmux attach || tmux || sh"
 
 # export TERM=xterm-256color
 
@@ -236,14 +236,14 @@ precmd () {
         echo
 }
 
-export PATH=~/.local/bin:/sbin:/bin:/usr/local/bin:/usr/local/sbin:~/.local/share/pnpm:~/.cargo/bin
+# export PATH=~/.local/bin:/sbin:/bin:/usr/local/bin:/usr/local/sbin:~/.local/share/pnpm:$PATH
 command-exists npm && export PATH=$PATH:`npm config get prefix`/bin
 export VISUAL=nvim
 export EDITOR=nvim
-[ -s /home/samual/.bun/_bun ] && source /home/samual/.bun/_bun
-export BUN_INSTALL=~/.bun
-export PATH=$BUN_INSTALL/bin:$PATH
-export PATH=~/zig:$PATH
+# [ -s /home/samual/.bun/_bun ] && source /home/samual/.bun/_bun
+# export BUN_INSTALL=~/.bun
+# export PATH=$BUN_INSTALL/bin:$PATH
+# export PATH=~/zig:$PATH
 
 del-prompt-accept-line () {
         zle reset-prompt
