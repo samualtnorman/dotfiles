@@ -4,7 +4,7 @@ command-exists () {
 
 (command-exists tmux && [ -n "$TMUX" ]) || exec sh -c "tmux attach || tmux || sh"
 
-export TERM=xterm-256color
+# export TERM=xterm-256color
 
 VSCODE_SUGGEST=1
 HISTFILE=~/.zsh-history
