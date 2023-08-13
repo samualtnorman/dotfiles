@@ -1,129 +1,44 @@
-command-exists() {
-    which $1 &> /dev/null
-}
+command-exists() which $1 &> /dev/null
+! [ "$TERM_PROGRAM" = "vscode" ] && command-exists tmux && ! [ -n "$TMUX" ] && exec sh -c "tmux attach || tmux || sh"
 
-(command-exists tmux && ! [ -n "$TMUX" ]) && exec sh -c "tmux attach || tmux || sh"
-
+# fix neovim in tmux
 [ "$TERM" = "tmux-256color" ] && export TERM=screen-256color
 
-# export TERM=xterm-256color
+[ -d /run/host/usr/share/zsh/plugins/ ] && for plugin in /run/host/usr/share/zsh/plugins/*; do
+	source $plugin/`basename $plugin`.zsh
+done
 
+[ -d /usr/share/zsh/plugins/ ] && for plugin in /usr/share/zsh/plugins/*; do
+	source $plugin/`basename $plugin`.zsh
+done
+
+setopt extendedglob
+
+for plugin in /usr/share/zsh-*(#qN); do
+	source $plugin/`basename $plugin`.zsh
+done
+
+command-exists direnv && eval "$(direnv hook zsh)"
 VSCODE_SUGGEST=1
 HISTFILE=~/.zsh-history
 HISTSIZE=10000
 SAVEHIST=10000
 PROMPT="%F{cyan}%m%f%# "
 RPROMPT="%F{blue}%~ %(?.%F{green}.%B%F{red})%?%f%b %F{yellow}%D{%H:%M}%f"
-
-run () {
-    if command-exists $1; then
-        command $@ &> /dev/null &|
-    else
-        $1
-    fi
-}
-
-cd () {
-	builtin cd $@ && ls
-}
-
-rm () {
-	echo "Did you mean \`trash\`? If you really mean \`rm\`, use \`command rm\`."
-	return 1
-}
-
-file-info () {
-	for FILE in $@; do
-		file $FILE
-		file --mime-type $FILE
-		file --extension $FILE
-		echo
-	done
-}
-
-alias-for () {
-	local search=${1}
-	local found="$( alias $search )"
-
-	if [[ -n $found ]]; then
-		found=${found//\\//}
-		found=${found%\'}
-		found=${found#"$search="}
-		found=${found#"'"}
-		echo "${found} ${2}" | xargs
-	else
-		echo ""
-	fi
-}
-
-extend-alias () {
-    if alias $1 &> /dev/null; then
-        alias $1="`alias-for $1`; $2"
-    else
-        alias $1=$2
-    fi
-}
-
-old () {
-    test -f $1.old && old $1.old
-    mv $1 $1.old
-}
-
-extend-path() {
-	case :$PATH: in
-		*:$1:*) ;;
-		*) export PATH=$1:$PATH ;;
-	esac
-}
-
-command-exists batcat && alias bat=batcat
-command-exists bat && alias cat=bat
-command-exists doas && alias sudo=doas
-command-exists docker && alias arch="docker run -it --rm --name arch archlinux:latest"
-command-exists docker && alias debian="docker run -it --rm --name arch debian:latest"
-
-setopt autocd beep extendedglob nomatch notify
+setopt beep extendedglob nomatch notify
 bindkey -e
 zstyle :compinstall filename ~/.zshrc
 autoload -Uz compinit
-
 compinit
+precmd() echo
 
-[ -d /run/host/usr/share/zsh/plugins/ ] && for PLUGIN in /run/host/usr/share/zsh/plugins/*; do
-	source $PLUGIN/`basename $PLUGIN`.zsh
-done
-
-[ -d /usr/share/zsh/plugins/ ] && for PLUGIN in /usr/share/zsh/plugins/*; do
-	source $PLUGIN/`basename $PLUGIN`.zsh
-done
-
-for PLUGIN in /usr/share/zsh-*(#qN); do
-	source $PLUGIN/`basename $PLUGIN`.zsh
-done
-
-alias ls="ls --color --human-readable --classify --sort=extension"
-alias lsh="ls --almost-all"
-alias kwrite="run kwrite"
-alias ll="ls -l"
-alias llh="lsh -l"
-alias \$="bash -c"
-alias \#=sudo
-alias dolphin="run dolphin"
-alias df="df -h"
-alias du="du -shc"
-alias grep="grep --color"
-command-exists konsole && alias konsole="run konsole"
-
-[ -n "$IN_NIX_SHELL" ] || {
-	export PNPM_HOME=~/.local/share/pnpm
-
-	case ":$PATH:" in
-  	  *":$PNPM_HOME:"*) ;;
-  	  *) export PATH="$PNPM_HOME:$PATH" ;;
-	esac
+del-prompt-accept-line() {
+    zle reset-prompt
+    zle accept-line
 }
 
-export PATH=/home/samual/.cargo/bin:$PATH
+zle -N del-prompt-accept-line
+bindkey "^M" del-prompt-accept-line
 
 # create a zkbd compatible hash;
 # to add other keys to this hash, see: man 5 terminfo
@@ -160,21 +75,35 @@ key[Shift-Tab]="${terminfo[kcbt]}"
 # active. Only then are the values from $terminfo valid.
 (( ${+terminfo[smkx]} && ${+terminfo[rmkx]} )) && {
 	autoload -Uz add-zle-hook-widget
-
-	zle_application_mode_start() {
-		echoti smkx
-	}
-
-	zle_application_mode_stop() {
-		echoti rmkx
-	}
-
+	zle_application_mode_start() echoti smkx
+	zle_application_mode_stop() echoti rmkx
 	add-zle-hook-widget -Uz zle-line-init zle_application_mode_start
 	add-zle-hook-widget -Uz zle-line-finish zle_application_mode_stop
 }
 
-command-exists pnpm && extend-alias upgrade-package "pnpm update -g"
-command-exists bun && extend-alias upgrade-package "bun upgrade"
+alias-for() {
+	local search=${1}
+	local found="$( alias $search )"
+
+	if [[ -n $found ]]; then
+		found=${found//\\//}
+		found=${found%\'}
+		found=${found#"$search="}
+		found=${found#"'"}
+		echo "${found} ${2}" | xargs
+	else
+		echo ""
+	fi
+}
+
+extend-alias() if alias $1 &> /dev/null; then
+    alias $1="`alias-for $1`; $2"
+else
+    alias $1=$2
+fi
+
+command-exists doas && ! command-exists sudo && alias sudo=doas
+alias \#=sudo
 
 if command-exists pacman; then
 	alias pacman="pacman --color auto"
@@ -183,7 +112,7 @@ if command-exists pacman; then
 	extend-alias upgrade-package "# pacman -Syu"
 	alias remove-package="# pacman -Rs"
 
-	command_not_found_handler () {
+	command_not_found_handler() {
 		local purple='\e[1;35m'
 		local bright='\e[0;1m'
 		local green='\e[1;32m'
@@ -198,7 +127,10 @@ if command-exists pacman; then
 			for entry in "${entries[@]}"
 			do
 				local fields=(${(0)entry})
-				[[ "$pkg" != "${fields[2]}" ]] && printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
+
+				[[ "$pkg" != "${fields[2]}" ]] &&
+					printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
+
 				printf '    /%s\n' "${fields[4]}"
 				pkg="${fields[2]}"
 			done
@@ -215,12 +147,76 @@ elif command-exists apt; then
 	alias remove-package="# apt remove"
 fi
 
+export VISUAL=nvim
+export EDITOR=nvim
+
+extend-path() case :$PATH: in
+	*:$1:*) ;;
+	*) export PATH=$1:$PATH ;;
+esac
+
+if [ -n "$IN_NIX_SHELL" ]; then
+	PROMPT="nix $PROMPT"
+else
+	export PNPM_HOME=~/.local/share/pnpm
+	extend-path $PNPM_HOME
+	extend-path ~/.cargo/bin
+fi
+
+command-exists npm && extend-path `npm config get prefix`/bin
+alias ls="ls --color --human-readable --classify --sort=extension"
+alias lsh="ls --almost-all"
+alias ll="ls -l"
+alias llh="lsh -l"
+alias df="df -h"
+alias du="du -shc"
+alias grep="grep --color"
+command-exists batcat && alias bat=batcat
+command-exists bat && alias cat=bat
+command-exists konsole && alias konsole="run konsole"
+command-exists kwrite && alias kwrite="run kwrite"
+command-exists dolphin && alias dolphin="run dolphin"
+alias \$="bash -c"
 command-exists rua && extend-alias upgrade-package "rua upgrade"
 command-exists cargo && extend-alias upgrade-package "cargo install-update -a"
+command-exists bun && extend-alias upgrade-package "bun upgrade"
+command-exists pnpm && extend-alias upgrade-package "pnpm update -g"
 command-exists search-package && alias sp=search-package
 command-exists add-package && alias ap=add-package
 command-exists upgrade-package && alias up=upgrade-package
 command-exists remove-package && alias rp=remove-package
+
+cd() {
+	builtin cd $@ && ls
+}
+
+rm() {
+	echo "Did you mean \`trash\`? If you really mean \`rm\`, use \`command rm\`."
+	return 1
+}
+
+command-exists docker && {
+	alias arch="docker run -it --rm --name arch archlinux:latest"
+	alias debian="docker run -it --rm --name arch debian:latest"
+}
+
+run() if command-exists $1; then
+    command $@ &> /dev/null &|
+else
+    $1
+fi
+
+file-info() for FILE in $@; do
+	file $FILE
+	file --mime-type $FILE
+	file --extension $FILE
+	echo
+done
+
+old() {
+    test -f $1.old && old $1.old
+    mv $1 $1.old
+}
 
 see() {
 	ll -d $1
@@ -233,30 +229,9 @@ see() {
 	fi
 }
 
-precmd () {
-	echo
-}
-
-# export PATH=~/.local/bin:/sbin:/bin:/usr/local/bin:/usr/local/sbin:~/.local/share/pnpm:$PATH
-command-exists npm && export PATH=$PATH:`npm config get prefix`/bin
-export VISUAL=nvim
-export EDITOR=nvim
-# [ -s /home/samual/.bun/_bun ] && source /home/samual/.bun/_bun
-# export BUN_INSTALL=~/.bun
-# export PATH=$BUN_INSTALL/bin:$PATH
-# export PATH=~/zig:$PATH
-
-del-prompt-accept-line () {
-    zle reset-prompt
-    zle accept-line
-}
-
-zle -N del-prompt-accept-line
-bindkey "^M" del-prompt-accept-line
-command-exists && eval "$(direnv hook zsh)"
-
 path() {
-	echo $PATH | tr : '\n'
+	echo $PATH | tr : "\n"
 }
 
 ls
+
