@@ -155,6 +155,13 @@ extend-path() case :$PATH: in
 	*) export PATH=$1:$PATH ;;
 esac
 
+extend-path /usr/local/sbin
+extend-path /usr/local/bin
+extend-path /bin
+extend-path /sbin
+extend-path /usr/sbin
+extend-path /usr/bin
+
 if [ -n "$IN_NIX_SHELL" ]; then
 	PROMPT="nix $PROMPT"
 else
@@ -178,6 +185,7 @@ command-exists kwrite && alias kwrite="run kwrite"
 command-exists dolphin && alias dolphin="run dolphin"
 alias \$="bash -c"
 command-exists rua && extend-alias upgrade-package "rua upgrade"
+command-exists nix-env && extend-alias upgrade-package "nix-env --upgrade"
 command-exists cargo && extend-alias upgrade-package "cargo install-update -a"
 command-exists bun && extend-alias upgrade-package "bun upgrade"
 command-exists pnpm && extend-alias upgrade-package "pnpm update -g"
