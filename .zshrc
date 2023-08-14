@@ -1,8 +1,9 @@
 command-exists() which $1 &> /dev/null
-! [ "$TERM_PROGRAM" = "vscode" ] && command-exists tmux && ! [ -n "$TMUX" ] && exec sh -c "tmux attach || tmux || sh"
 
 # fix neovim in tmux
-[ "$TERM" = "tmux-256color" ] && export TERM=screen-256color
+[ "$TERM" = "tmux-256color" ] && export TERM=xterm-256color
+
+! [ "$TERM_PROGRAM" = "vscode" ] && command-exists tmux && ! [ -n "$TMUX" ] && exec sh -c "tmux attach || tmux || sh"
 
 [ -d /run/host/usr/share/zsh/plugins/ ] && for plugin in /run/host/usr/share/zsh/plugins/*; do
 	source $plugin/`basename $plugin`.zsh
