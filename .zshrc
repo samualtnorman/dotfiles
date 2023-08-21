@@ -242,5 +242,11 @@ path() {
 	echo $PATH | tr : "\n"
 }
 
-ls
+command-exists remarshal && command-exists xxd && 2cbor() {
+	{
+		echo D9D9F7 | xxd -r -p
+		remarshal $1 --of cbor
+	} > $2
+}
 
+ls
