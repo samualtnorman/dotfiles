@@ -156,6 +156,11 @@ extend-path() case :$PATH: in
 	*) export PATH=$1:$PATH ;;
 esac
 
+begins-with() case $1 in
+	$2*) true ;;
+	*) false ;;
+esac
+
 extend-path /usr/local/sbin
 extend-path /usr/local/bin
 extend-path /bin
@@ -188,8 +193,8 @@ alias \$="bash -c"
 command-exists rua && extend-alias upgrade-package "rua upgrade"
 command-exists nix-env && extend-alias upgrade-package "nix-env --upgrade"
 command-exists cargo && extend-alias upgrade-package "cargo install-update -a"
-command-exists bun && extend-alias upgrade-package "bun upgrade"
-command-exists pnpm && extend-alias upgrade-package "pnpm update -g"
+command-exists bun && ! begins-with `which bun` /home/samual/.nix-profile/ && extend-alias upgrade-package "bun upgrade"
+command-exists pnpm && ! begins-with `which pnpm` /home/samual/.nix-profile/ && extend-alias upgrade-package "pnpm update -g"
 command-exists search-package && alias sp=search-package
 command-exists add-package && alias ap=add-package
 command-exists upgrade-package && alias up=upgrade-package
