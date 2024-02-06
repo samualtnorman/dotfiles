@@ -21,7 +21,7 @@ done
 
 command-exists direnv && eval "$(direnv hook zsh)"
 VSCODE_SUGGEST=1
-HISTFILE=~/.zsh-history
+HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 PROMPT="%F{cyan}%m%f%# "
@@ -34,8 +34,8 @@ compinit
 precmd() echo
 
 del-prompt-accept-line() {
-    zle reset-prompt
-    zle accept-line
+	zle reset-prompt
+	zle accept-line
 }
 
 zle -N del-prompt-accept-line
@@ -98,9 +98,9 @@ alias-for() {
 }
 
 extend-alias() if alias $1 &> /dev/null; then
-    alias $1="`alias-for $1`; $2"
+	alias $1="`alias-for $1`; $2"
 else
-    alias $1=$2
+	alias $1=$2
 fi
 
 command-exists doas && ! command-exists sudo && alias sudo=doas
@@ -215,9 +215,9 @@ command-exists docker && {
 }
 
 run() if command-exists $1; then
-    command $@ &> /dev/null &|
+	command $@ &> /dev/null &|
 else
-    $1
+	$1
 fi
 
 file-info() for FILE in $@; do
@@ -228,8 +228,8 @@ file-info() for FILE in $@; do
 done
 
 old() {
-    test -f $1.old && old $1.old
-    mv $1 $1.old
+	test -f $1.old && old $1.old
+	mv $1 $1.old
 }
 
 see() {
